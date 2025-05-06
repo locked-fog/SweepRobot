@@ -4,7 +4,7 @@
 
 #### ¹¦ÄÜ
 
-- [-] print_room_map
+- [x] print_room_map
 
 - [ ] mapping
 
