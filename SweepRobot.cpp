@@ -37,9 +37,11 @@ const string GRID_CLEANED_COLOR = "\033[42m  \033[0m";	//ÂÌÉ«£¬±íÊ¾ÒÑ¾­ÇåÉ¨µÄÇøÓ
 const string GRID_ROBOT_COLOR = "\033[43m  \033[0m";	//»ÆÉ«£¬±íÊ¾É¨µØ»úÆ÷ÈËµ±Ç°ËùÔÚÇøÓò
 
 
-//ÉèÖÃ¿ØÖÆÌ¨ÎªĞéÄâÖÕ¶ËĞòÁĞÄ£Ê½£¬Ê¹ÆäÄÜ¹»Ö§³Ö¿É¿ØÖÆµÄ¹â±êÒÆ¶¯¡¢²ÊÉ«ÎÄ±¾µÈ¹¦ÄÜ
-//[1] https://learn.microsoft.com/zh-cn/windows/console/setconsolemode
-//[2] https://learn.microsoft.com/zh-cn/windows/console/console-virtual-terminal-sequences
+/***
+ * ÉèÖÃ¿ØÖÆÌ¨ÎªĞéÄâÖÕ¶ËĞòÁĞÄ£Ê½£¬Ê¹ÆäÄÜ¹»Ö§³Ö¿É¿ØÖÆµÄ¹â±êÒÆ¶¯¡¢²ÊÉ«ÎÄ±¾µÈ¹¦ÄÜ
+ * [1] https://learn.microsoft.com/zh-cn/windows/console/setconsolemode
+ * [2] https://learn.microsoft.com/zh-cn/windows/console/console-virtual-terminal-sequences
+ */
 void config_screen() {
 	// »ñÈ¡¿ØÖÆÌ¨¾ä±ú
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -63,7 +65,11 @@ void config_screen() {
 	}
 }
 
-// ÒÆ¶¯¹â±êµ½Ö¸¶¨Î»ÖÃ
+/***
+ * ½«¹â±êÒÆ¶¯ÖÁÖ¸¶¨Î»ÖÃ
+ * @param x Ö¸¶¨µÄ x ×ø±ê
+ * @param y Ö¸¶¨µÄ y ×ø±ê
+ */
 void gotoxy(int x, int y) {
 	//ÎªÁË½«·¿¼äÇøÓò²»¶¥¸ñÏÔÊ¾£¬ËùÒÔÍ³Ò»¼ÓÉÏÆ«ÒÆÁ¿
 	x += 2;
@@ -73,27 +79,46 @@ void gotoxy(int x, int y) {
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 
-//´òÓ¡Ä³¸öÊ±¿Ì·¿¼äËùÓĞÇøÓòµÄ×´Ì¬
-void print_room_map(const LogicController controller) {
 
+/***
+ * ´òÓ¡Ä³¸öÊ±¿Ì·¿¼äËùÓĞÇøÓòµÄ×´Ì¬
+ * @param controller Ä¿±êÉ¨µØ»úÆ÷ÈË¿ØÖÆÆ÷
+ */
+void print_room_map(const LogicController controller) {
+	//TODO
 }
 
-//½¨Í¼
+/***
+ * ½¨Í¼
+ * @param controller Ä¿±êÉ¨µØ»úÆ÷ÈË¿ØÖÆÆ÷
+ */
 void mapping(LogicController &controller) {
-
+	//TODO
 }
 
 //ÇåÉ¨
+/***
+ * ÇåÉ¨
+ * @param controller Ä¿±êÉ¨µØ»úÆ÷ÈË¿ØÖÆÆ÷
+ */
 void scanning_sweep(LogicController &controller) {
-
+	//TODO
 }
 
-//¶¨µãÇåÉ¨
-void target_sweep(LogicController &controller) {
+/***
+ * ¶¨µãÇåÉ¨
+ * @param x Ä¿±êµØµãµÄ x ×ø±ê
+ * @param y Ä¿±êµØµãµÄ y ×ø±ê
+ * @param controller Ä¿±êÉ¨µØ»úÆ÷ÈË¿ØÖÆÆ÷
+ */
+// void target_sweep(int x,int y,LogicController &controller) {
+	//TODO
+// }
 
-}
-
-//¿ØÖÆ»úÆ÷ÈË»Øµ½Æğµã
+/***
+ * ¿ØÖÆ»úÆ÷ÈË»Øµ½Æğµã
+ * @param controller Ä¿±êÉ¨µØ»úÆ÷ÈË¿ØÖÆÆ÷
+ */
 void goto_start_point(LogicController &controller) {
 	vector<pair<int, int>> path;
 	find_shortest_path(*controller.room, ROOM_WIDTH, ROOM_LENGTH, controller.robotX, controller.robotY, 0, 0, path);
@@ -104,7 +129,10 @@ void goto_start_point(LogicController &controller) {
 	}
 }
 
-//´òÓ¡ÌáÊ¾ĞÅÏ¢
+/***
+ * ´òÓ¡ÌáÊ¾ĞÅÏ¢£¬Íê³É´òÓ¡ºó½«ÏÔÊ¾¡°ÊäÈëÈÎÒâ¼ü¼ÌĞø...¡±
+ * @param msg Ô¤¼Æ½«Òª´òÓ¡µÄĞÅÏ¢
+ */
 void step_over(string msg) {
 	cout << endl << msg << endl;
 	cout << "ÊäÈëÈÎÒâ¼ü¼ÌĞø..." << endl;
