@@ -73,6 +73,19 @@ git clone https://github.com/locked-fog/SweepRobot.git
 
 回到 `SweepRobot.cpp` ，按下 `F5`，此时应当编译通过，并在新弹出的命令行窗口中运行程序。
 
+#### Standard
+
+代码开发需要遵循一定规范。
+
+- 尽可能采用驼峰命名法（变量第一个词首字母小写，类型第一个词首字母大写，各词第一个字母使用大写字母）
+- - 例如：`int robotPos` `class SweepRobot`
+
+- 代码块的第一个大括号归并到上一行（参考已有代码），不能省略代码块的大括号（即便只有一行代码）
+
+- 尽可能为自己的代码注释，并在每次写完后标记自己修改的部分
+
+- 每次开始写代码前先同步项目，避免代码冲突
+
 #### Author
 
 Locked_Fog, levely
