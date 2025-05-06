@@ -1,0 +1,149 @@
+#include <iostream>
+#include <windows.h>
+#include <vector>
+#include <conio.h>
+#include "LaserDetector.h"
+#include "PathPlanner.h"
+using namespace std;
+
+//房间区块尺寸
+const int ROOM_WIDTH = 12;
+const int ROOM_LENGTH = 20;
+
+
+//枚举类型RoomGrid列出了房间每块区域的状态
+enum RoomGrid {
+	GRID_UNKNOWN = 0,	//建图之前未知
+	GRID_NORMAL = 1,		//没有障碍物
+	GRID_CLEANED = 2,	//已经被打扫
+	GRID_STATIC_OBSTACLE = -1,	//有静态障碍物（建图过程发现的障碍物）
+	GRID_DYNAMIC_OBSTACLE = -2	//有动态障碍物（打扫过程发现的障碍物）
+
+};
+
+//清扫逻辑控制结构体
+struct LogicController {
+	int room[ROOM_WIDTH][ROOM_LENGTH]; //二维数组来表示房间区块的状态，并将所有区块初始化为未知状态GRID_UNKNOWN
+	int robotX;	//机器人目前的x坐标
+	int robotY;	//机器人目前的y坐标
+};
+
+// 定义房间区块不同状态对应的ANSI颜色编码
+const string GRID_UNKNOWN_COLOR = "\033[47m  \033[0m";	//白色，表示未知区域
+const string GRID_NORMAL_COLOR = "\033[46m  \033[0m";	//蓝 色，表示已建图后的可清扫区域
+const string GRID_STATIC_OBSTACLE_COLOR = "\033[41m  \033[0m";	//红色，表示已建图后的静态障碍物区域
+const string GRID_DYNAMIC_OBSTACLE_COLOR = "\033[45m  \033[0m";	//品红，表示清扫时发现的动态障碍物区域
+const string GRID_CLEANED_COLOR = "\033[42m  \033[0m";	//绿色，表示已经清扫的区域
+const string GRID_ROBOT_COLOR = "\033[43m  \033[0m";	//黄色，表示扫地机器人当前所在区域
+
+
+//设置控制台为虚拟终端序列模式，使其能够支持可控制的光标移动、彩色文本等功能
+//[1] https://learn.microsoft.com/zh-cn/windows/console/setconsolemode
+//[2] https://learn.microsoft.com/zh-cn/windows/console/console-virtual-terminal-sequences
+void config_screen() {
+	// 获取控制台句柄
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (hOut == INVALID_HANDLE_VALUE) {
+		cout << "Error:" << GetLastError() << endl;
+		return;
+	}
+
+	// 获取控制台当前模式
+	DWORD dwMode = 0;
+	if (!GetConsoleMode(hOut, &dwMode)) {
+		cout << "Error:" << GetLastError() << endl;
+		return;
+	}
+
+	// 控制台当前模式中增加虚拟终端序列模式
+	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	if (!SetConsoleMode(hOut, dwMode)) {
+		cout << "Error:" << GetLastError() << endl;
+		return;
+	}
+}
+
+// 移动光标到指定位置
+void gotoxy(int x, int y) {
+	//为了将房间区域不顶格显示，所以统一加上偏移量
+	x += 2;
+	y += 2;
+	x *= 2;	//因为使用2个空格表示一个房间区域，所以要乘上2
+	COORD coord = { (SHORT)x, (SHORT)y };
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+//打印某个时刻房间所有区域的状态
+void print_room_map(const LogicController controller) {
+
+}
+
+//建图
+void mapping(LogicController &controller) {
+
+}
+
+//清扫
+void scanning_sweep(LogicController &controller) {
+
+}
+
+//定点清扫
+void target_sweep(LogicController &controller) {
+
+}
+
+//控制机器人回到起点
+void goto_start_point(LogicController &controller) {
+	vector<pair<int, int>> path;
+	find_shortest_path(*controller.room, ROOM_WIDTH, ROOM_LENGTH, controller.robotX, controller.robotY, 0, 0, path);
+	for (unsigned int i = 0; i < path.size(); i++) {
+		controller.robotX = path[i].first;
+		controller.robotY = path[i].second;
+		print_room_map(controller);
+	}
+}
+
+//打印提示信息
+void step_over(string msg) {
+	cout << endl << msg << endl;
+	cout << "输入任意键继续..." << endl;
+	getch();	//等待键盘任意键按下，不需要按回车键确认输入
+	system("cls");	//清除控制台界面上所有的字符，并将光标移动到左上方
+}
+
+int main() {
+	//配置屏幕，使其支持光标位置控制和彩色字体
+	config_screen();
+
+	//创建逻辑控制器
+	LogicController controller;
+	//将房间的所有区块初始化为未知状态
+	for (int i = 0; i < ROOM_WIDTH; i++)
+		for (int j = 0; j < ROOM_LENGTH; j++)
+			controller.room[i][j] = GRID_UNKNOWN;
+	//设置机器人的初始位置为左上方
+	controller.robotX = 0;
+	controller.robotY = 0;
+	controller.room[0][0] = GRID_NORMAL;
+
+	//建图
+	mapping(controller);
+	goto_start_point(controller);
+	step_over("建图完成！");
+
+	//清扫
+	scanning_sweep(controller);
+	goto_start_point(controller);
+	step_over("清扫完成！");
+
+	//定点清扫（选做）
+	//target_sweep(controller);
+	//step_over("定点清扫完成！");
+
+	//回到起点
+	goto_start_point(controller);
+	step_over("所有过程结束！");
+
+	return 0;
+}
