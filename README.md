@@ -1,8 +1,8 @@
-# æ¸…æ‰«æœºå™¨äºº
+# ÇåÉ¨»úÆ÷ÈË
 
-> 2025æ˜¥ C++ å°ç»„ä½œä¸š
+> 2025´º C++ Ğ¡×é×÷Òµ
 
-#### åŠŸèƒ½
+#### ¹¦ÄÜ
 
 - [ ] print_room_map
 
@@ -12,8 +12,67 @@
 
 - [ ] target_sweep(choseable)
 
-#### é…ç½®
+#### ÅäÖÃ£¨Ê¹ÓÃVS Code½øĞĞÅäÖÃ£©
 
 ##### step 0
 
+¿ËÂ¡´Ë²Ö¿â
 
+```git bash
+git clone https://github.com/locked-fog/SweepRobot.git
+```
+
+ÔÚ²Ö¿âÖĞÓÒ¼ü -> Ê¹ÓÃ VS Code ´ò¿ª
+
+##### step 1
+
+×¢Òâ£¬±¾ÏîÄ¿²ÉÓÃ `GBK2312` ±à¼­£¬ËùÒÔËùÓĞÏîÄ¿ÎÄ¼şĞèÒªÒÔ `GBK2312` ´ò¿ª£º
+
+- ´ò¿ªÒ»¸öÎÄ¼ş£¬ÔÚÓÒÏÂ½ÇÕÒµ½²¢µã»÷±àÂëÑ¡ÔñÆ÷£¨`UTF-8`£©£¬ÔÚµ¯³öµÄ¶Ô»°¿òÖĞÑ¡Ôñ `Í¨¹ı±àÂëÖØĞÂ´ò¿ª(Reopen with Encoding)` 
+
+##### step 2
+
+ÅäÖÃ¿ª·¢»·¾³
+
+´ò¿ª `SweepRobot.cpp`£¬°´ÏÂ `Ctrl+Shift+P` £¬ÔÚµ¯³öµÄ¶Ô»°¿òÖĞÊäÈë `Tasks: Configure Default Build Task` £¬Ñ¡Ôñ `ÈÎÎñ£ºÅäÖÃÄ¬ÈÏÉú³ÉÈÎÎñ(Tasks: Configure Default Build Task)` ¡£
+
+Ñ¡Ôñ `C/C++: g++.exe Éú³É»î¶¯ÎÄ¼ş` ¡£
+
+ĞŞ¸Ä `args` ÊôĞÔ£º
+
+```json
+"args": [
+    "-fdiagnostics-color=always",
+    "-g",
+    "${file}",
+    "-L${workspaceFolder}",
+    "-lLaserDetector",
+    "-lPathPlanner",
+    "-o",
+    "${fileDirname}\\${fileBasenameNoExtension}.exe"
+]
+```
+
+±£´æ²¢¹Ø±ÕÎÄ¼ş¡£
+
+##### step 3
+
+»Øµ½ `SweepRobot.cpp` £¬°´ÏÂ `F5`£¬´ËÊ±Ó¦µ±µ¯³ö´íÎó´°¿Ú `launch: program ... does not exist` £¬°´ÏÂ `´ò¿ª"launch.json"`¡£
+
+ĞŞ¸Ä `launch.json` ÖĞµÄÊôĞÔ£º
+
+- Ìí¼ÓÊôĞÔ `"preLaunchTask": "C/C++: g++.exe Éú³É»î¶¯ÎÄ¼ş"`
+
+- ĞŞ¸ÄÊôĞÔ `"cwd": "${workspaceFolder}"`
+
+- ĞŞ¸ÄÊôĞÔ `"program": "${fileDirname}\\${fileBasenameNoExtension}.exe"`
+
+±£´æ²¢¹Ø±ÕÎÄ¼ş
+
+##### step 4
+
+»Øµ½ `SweepRobot.cpp` £¬°´ÏÂ `F5`£¬´ËÊ±Ó¦µ±±àÒëÍ¨¹ı£¬²¢ÔÚĞÂµ¯³öµÄÃüÁîĞĞ´°¿ÚÖĞÔËĞĞ³ÌĞò¡£
+
+#### Author
+
+Locked_Fog, levely
