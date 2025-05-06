@@ -1,6 +1,5 @@
-#include <iostream>
+#include <bits/stdc++.h>
 #include <windows.h>
-#include <vector>
 #include <conio.h>
 #include "LaserDetector.h"
 #include "PathPlanner.h"
@@ -17,8 +16,8 @@ enum RoomGrid {
 	GRID_NORMAL = 1,		//没有障碍物
 	GRID_CLEANED = 2,	//已经被打扫
 	GRID_STATIC_OBSTACLE = -1,	//有静态障碍物（建图过程发现的障碍物）
-	GRID_DYNAMIC_OBSTACLE = -2	//有动态障碍物（打扫过程发现的障碍物）
-
+	GRID_DYNAMIC_OBSTACLE = -2,	//有动态障碍物（打扫过程发现的障碍物）
+	GRID_ROBOT = 3	//机器人
 };
 
 //清扫逻辑控制结构体
@@ -36,6 +35,7 @@ const string GRID_DYNAMIC_OBSTACLE_COLOR = "\033[45m  \033[0m";	//品红，表示清扫
 const string GRID_CLEANED_COLOR = "\033[42m  \033[0m";	//绿色，表示已经清扫的区域
 const string GRID_ROBOT_COLOR = "\033[43m  \033[0m";	//黄色，表示扫地机器人当前所在区域
 
+unordered_map<int,string> colorMap;	//记录枚举对应颜色
 
 /***
  * 设置控制台为虚拟终端序列模式，使其能够支持可控制的光标移动、彩色文本等功能
@@ -85,7 +85,21 @@ void gotoxy(int x, int y) {
  * @param controller 目标扫地机器人控制器
  */
 void print_room_map(const LogicController controller) {
-	//TODO
+	//Locked_Fog 25/5/6
+	/***
+	 * 思路：移动光标到初始位置，然后按controller内的内容打印图像
+	 */
+	for(int i=0;i<ROOM_WIDTH;i++){
+		for(int j=0;j<ROOM_LENGTH;j++){
+			gotoxy(j,i);		//注意：数组和坐标的关系应当为controller.room[y][x]
+			if(i==controller.robotX && j==controller.robotY){
+				cout<<colorMap[GRID_ROBOT];
+			}else{
+				cout<<colorMap[controller.room[i][j]];
+			}
+		}
+	}
+	return;
 }
 
 /***
@@ -144,6 +158,14 @@ int main() {
 	//配置屏幕，使其支持光标位置控制和彩色字体
 	config_screen();
 
+	//初始化colorMap
+	colorMap[GRID_UNKNOWN] = GRID_UNKNOWN_COLOR;
+	colorMap[GRID_NORMAL] = GRID_NORMAL_COLOR;
+	colorMap[GRID_CLEANED] = GRID_CLEANED_COLOR;
+	colorMap[GRID_STATIC_OBSTACLE] = GRID_STATIC_OBSTACLE_COLOR;
+	colorMap[GRID_DYNAMIC_OBSTACLE] = GRID_DYNAMIC_OBSTACLE_COLOR;
+	colorMap[GRID_ROBOT] = GRID_ROBOT_COLOR;
+
 	//创建逻辑控制器
 	LogicController controller;
 	//将房间的所有区块初始化为未知状态
@@ -154,6 +176,9 @@ int main() {
 	controller.robotX = 0;
 	controller.robotY = 0;
 	controller.room[0][0] = GRID_NORMAL;
+
+	//test
+	print_room_map(controller);
 
 	//建图
 	mapping(controller);
