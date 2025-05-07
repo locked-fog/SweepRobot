@@ -89,5 +89,3 @@ git clone https://github.com/locked-fog/SweepRobot.git
 #### Author
 
 Locked_Fog, levely, sooorry
-
-congratulations
