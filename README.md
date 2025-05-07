@@ -1,8 +1,8 @@
-# ��ɨ������
+# 清扫机器人
 
-> 2025�� C++ С����ҵ
+> 2025春 C++ 小组作业
 
-#### ����
+#### 功能
 
 - [x] print_room_map
 
@@ -12,33 +12,33 @@
 
 - [ ] target_sweep(choseable)
 
-#### ���ã�ʹ��VS Code�������ã�
+#### 配置（使用VS Code进行配置）
 
 ##### step 0
 
-��¡�˲ֿ�
+克隆此仓库
 
 ```git bash
 git clone https://github.com/locked-fog/SweepRobot.git
 ```
 
-�ڲֿ����Ҽ� -> ʹ�� VS Code ��
+在仓库中右键 -> 使用 VS Code 打开
 
 ##### step 1
 
-ע�⣬����Ŀ���� `GBK2312` �༭������������Ŀ�ļ���Ҫ�� `GBK2312` �򿪣�
+注意，本项目采用 `GBK2312` 编辑，所以所有项目文件需要以 `GBK2312` 打开：
 
-- ��һ���ļ��������½��ҵ����������ѡ������`UTF-8`�����ڵ����ĶԻ�����ѡ�� `ͨ���������´�(Reopen with Encoding)` 
+- 打开一个文件，在右下角找到并点击编码选择器（`UTF-8`），在弹出的对话框中选择 `通过编码重新打开(Reopen with Encoding)` 
 
 ##### step 2
 
-���ÿ�������
+配置开发环境
 
-�� `SweepRobot.cpp`������ `Ctrl+Shift+P` ���ڵ����ĶԻ��������� `Tasks: Configure Default Build Task` ��ѡ�� `��������Ĭ����������(Tasks: Configure Default Build Task)` ��
+打开 `SweepRobot.cpp`，按下 `Ctrl+Shift+P` ，在弹出的对话框中输入 `Tasks: Configure Default Build Task` ，选择 `任务：配置默认生成任务(Tasks: Configure Default Build Task)` 。
 
-ѡ�� `C/C++: g++.exe ���ɻ�ļ�` ��
+选择 `C/C++: g++.exe 生成活动文件` 。
 
-�޸� `args` ���ԣ�
+修改 `args` 属性：
 
 ```json
 "args": [
@@ -53,39 +53,41 @@ git clone https://github.com/locked-fog/SweepRobot.git
 ]
 ```
 
-���沢�ر��ļ���
+保存并关闭文件。
 
 ##### step 3
 
-�ص� `SweepRobot.cpp` ������ `F5`����ʱӦ���������󴰿� `launch: program ... does not exist` ������ `��"launch.json"`��
+回到 `SweepRobot.cpp` ，按下 `F5`，此时应当弹出错误窗口 `launch: program ... does not exist` ，按下 `打开"launch.json"`。
 
-�޸� `launch.json` �е����ԣ�
+修改 `launch.json` 中的属性：
 
-- �������� `"preLaunchTask": "C/C++: g++.exe ���ɻ�ļ�"`
+- 添加属性 `"preLaunchTask": "C/C++: g++.exe 生成活动文件"`
 
-- �޸����� `"cwd": "${workspaceFolder}"`
+- 修改属性 `"cwd": "${workspaceFolder}"`
 
-- �޸����� `"program": "${fileDirname}\\${fileBasenameNoExtension}.exe"`
+- 修改属性 `"program": "${fileDirname}\\${fileBasenameNoExtension}.exe"`
 
-���沢�ر��ļ�
+保存并关闭文件
 
 ##### step 4
 
-�ص� `SweepRobot.cpp` ������ `F5`����ʱӦ������ͨ���������µ����������д��������г���
+回到 `SweepRobot.cpp` ，按下 `F5`，此时应当编译通过，并在新弹出的命令行窗口中运行程序。
 
 #### Standard
 
-���뿪����Ҫ��ѭһ���淶��
+代码开发需要遵循一定规范。
 
-- �����ܲ����շ���������������һ��������ĸСд�����͵�һ��������ĸ��д�����ʵ�һ����ĸʹ�ô�д��ĸ��
-- - ���磺`int robotPos` `class SweepRobot`
+- 尽可能采用驼峰命名法（变量第一个词首字母小写，类型第一个词首字母大写，各词第一个字母使用大写字母）
+- - 例如：`int robotPos` `class SweepRobot`
 
-- �����ĵ�һ�������Ź鲢����һ�У��ο����д��룩������ʡ�Դ����Ĵ����ţ�����ֻ��һ�д��룩
+- 代码块的第一个大括号归并到上一行（参考已有代码），不能省略代码块的大括号（即便只有一行代码）
 
-- ������Ϊ�Լ��Ĵ���ע�ͣ�����ÿ��д������Լ��޸ĵĲ���
+- 尽可能为自己的代码注释，并在每次写完后标记自己修改的部分
 
-- ÿ�ο�ʼд����ǰ��ͬ����Ŀ����������ͻ
+- 每次开始写代码前先同步项目，避免代码冲突
 
 #### Author
 
 Locked_Fog, levely, sooorry
+
+congratulations
