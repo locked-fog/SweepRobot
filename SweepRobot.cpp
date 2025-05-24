@@ -107,8 +107,76 @@ void print_room_map(const LogicController controller) {
  * @param controller 目标扫地机器人控制器
  */
 void mapping(LogicController &controller) {
-	//TODO
+	srand(time(0));
+    
+    // 先将所有区域设为未知
+    for (int i = 0; i < ROOM_WIDTH; i++) {
+        for (int j = 0; j < ROOM_LENGTH; j++) {
+            controller.room[i][j] = GRID_UNKNOWN;
+        }
+    }
+    
+    // 设置一些静态障碍物
+    int obstacleCount = (ROOM_WIDTH * ROOM_LENGTH) / 8; // 大约1/8的区域是障碍物
+    for (int i = 0; i < obstacleCount; i++) {
+        int x = rand() % ROOM_WIDTH;
+        int y = rand() % ROOM_LENGTH;
+        
+        // 确保不把起点设为障碍物
+        if (x != 0 || y != 0) {
+            controller.room[x][y] = GRID_STATIC_OBSTACLE;
+        }
+    }
+    
+    // 模拟建图过程，机器人从起点开始探索整个房间
+    vector<vector<bool>> visited(ROOM_WIDTH, vector<bool>(ROOM_LENGTH, false));
+    queue<pair<int, int>> q;
+    
+    // 起点标记为已访问并设为可通行
+    controller.room[0][0] = GRID_NORMAL;
+    q.push({0, 0});
+    visited[0][0] = true;
+    
+    // 定义四个方向：上、右、下、左
+    vector<pair<int, int>> directions = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+    
+    while (!q.empty()) {
+        auto current = q.front();
+        q.pop();
+        int x = current.first;
+        int y = current.second;
+        
+        // 更新机器人位置并显示
+        controller.robotX = x;
+        controller.robotY = y;
+        print_room_map(controller);
+        Sleep(100); // 减慢速度以便观察
+        
+        // 尝试四个方向
+        for (auto dir : directions) {
+            int newX = x + dir.first;
+            int newY = y + dir.second;
+            
+            // 检查是否在边界内且未访问过
+            if (newX >= 0 && newX < ROOM_WIDTH && newY >= 0 && newY < ROOM_LENGTH && 
+                !visited[newX][newY]) {
+                
+                visited[newX][newY] = true;
+                
+                // 如果是障碍物，标记为静态障碍物
+                if (controller.room[newX][newY] == GRID_STATIC_OBSTACLE) {
+                    // 不需要改变，已经是静态障碍物
+                } else {
+                    // 否则标记为可清扫区域
+                    controller.room[newX][newY] = GRID_NORMAL;
+                    q.push({newX, newY});
+                }
+            }
+        }
+    }
 }
+	//TODO
+
 
 //清扫
 /***
