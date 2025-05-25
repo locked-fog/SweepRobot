@@ -5,59 +5,59 @@
 #include "PathPlanner.h"
 using namespace std;
 
-//��������ߴ�
+//房间区块尺寸
 const int ROOM_WIDTH = 12;
 const int ROOM_LENGTH = 20;
 
 
-//ö������RoomGrid�г��˷���ÿ�������״̬
+//枚举类型RoomGrid列出了房间每块区域的状态
 enum RoomGrid {
-	GRID_UNKNOWN = 0,	//��ͼ֮ǰδ֪
-	GRID_NORMAL = 1,		//û���ϰ���
-	GRID_CLEANED = 2,	//�Ѿ�����ɨ
-	GRID_STATIC_OBSTACLE = -1,	//�о�̬�ϰ����ͼ���̷��ֵ��ϰ��
-	GRID_DYNAMIC_OBSTACLE = -2,	//�ж�̬�ϰ����ɨ���̷��ֵ��ϰ��
-	GRID_ROBOT = 3	//������
+	GRID_UNKNOWN = 0,	//建图之前未知
+	GRID_NORMAL = 1,		//没有障碍物
+	GRID_CLEANED = 2,	//已经被打扫
+	GRID_STATIC_OBSTACLE = -1,	//有静态障碍物（建图过程发现的障碍物）
+	GRID_DYNAMIC_OBSTACLE = -2,	//有动态障碍物（打扫过程发现的障碍物）
+	GRID_ROBOT = 3	//机器人
 };
 
-//��ɨ�߼����ƽṹ��
+//清扫逻辑控制结构体
 struct LogicController {
-	int room[ROOM_WIDTH][ROOM_LENGTH]; //��ά��������ʾ���������״̬���������������ʼ��Ϊδ֪״̬GRID_UNKNOWN
-	int robotX;	//������Ŀǰ��x����
-	int robotY;	//������Ŀǰ��y����
+	int room[ROOM_WIDTH][ROOM_LENGTH]; //二维数组来表示房间区块的状态，并将所有区块初始化为未知状态GRID_UNKNOWN
+	int robotX;	//机器人目前的x坐标
+	int robotY;	//机器人目前的y坐标
 };
 
-// ���巿�����鲻ͬ״̬��Ӧ��ANSI��ɫ����
-const string GRID_UNKNOWN_COLOR = "\033[47m  \033[0m";	//��ɫ����ʾδ֪����
-const string GRID_NORMAL_COLOR = "\033[46m  \033[0m";	//�� ɫ����ʾ�ѽ�ͼ��Ŀ���ɨ����
-const string GRID_STATIC_OBSTACLE_COLOR = "\033[41m  \033[0m";	//��ɫ����ʾ�ѽ�ͼ��ľ�̬�ϰ�������
-const string GRID_DYNAMIC_OBSTACLE_COLOR = "\033[45m  \033[0m";	//Ʒ�죬��ʾ��ɨʱ���ֵĶ�̬�ϰ�������
-const string GRID_CLEANED_COLOR = "\033[42m  \033[0m";	//��ɫ����ʾ�Ѿ���ɨ������
-const string GRID_ROBOT_COLOR = "\033[43m  \033[0m";	//��ɫ����ʾɨ�ػ����˵�ǰ��������
+// 定义房间区块不同状态对应的ANSI颜色编码
+const string GRID_UNKNOWN_COLOR = "\033[47m  \033[0m";	//白色，表示未知区域
+const string GRID_NORMAL_COLOR = "\033[46m  \033[0m";	//蓝 色，表示已建图后的可清扫区域
+const string GRID_STATIC_OBSTACLE_COLOR = "\033[41m  \033[0m";	//红色，表示已建图后的静态障碍物区域
+const string GRID_DYNAMIC_OBSTACLE_COLOR = "\033[45m  \033[0m";	//品红，表示清扫时发现的动态障碍物区域
+const string GRID_CLEANED_COLOR = "\033[42m  \033[0m";	//绿色，表示已经清扫的区域
+const string GRID_ROBOT_COLOR = "\033[43m  \033[0m";	//黄色，表示扫地机器人当前所在区域
 
-unordered_map<int,string> colorMap;	//��¼ö�ٶ�Ӧ��ɫ
+unordered_map<int,string> colorMap;	//记录枚举对应颜色
 
 /***
- * ���ÿ���̨Ϊ�����ն�����ģʽ��ʹ���ܹ�֧�ֿɿ��ƵĹ���ƶ�����ɫ�ı��ȹ���
+ * 设置控制台为虚拟终端序列模式，使其能够支持可控制的光标移动、彩色文本等功能
  * [1] https://learn.microsoft.com/zh-cn/windows/console/setconsolemode
  * [2] https://learn.microsoft.com/zh-cn/windows/console/console-virtual-terminal-sequences
  */
 void config_screen() {
-	// ��ȡ����̨���
+	// 获取控制台句柄
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (hOut == INVALID_HANDLE_VALUE) {
 		cout << "Error:" << GetLastError() << endl;
 		return;
 	}
 
-	// ��ȡ����̨��ǰģʽ
+	// 获取控制台当前模式
 	DWORD dwMode = 0;
 	if (!GetConsoleMode(hOut, &dwMode)) {
 		cout << "Error:" << GetLastError() << endl;
 		return;
 	}
 
-	// ����̨��ǰģʽ�����������ն�����ģʽ
+	// 控制台当前模式中增加虚拟终端序列模式
 	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 	if (!SetConsoleMode(hOut, dwMode)) {
 		cout << "Error:" << GetLastError() << endl;
@@ -66,32 +66,32 @@ void config_screen() {
 }
 
 /***
- * ������ƶ���ָ��λ��
- * @param x ָ���� x ����
- * @param y ָ���� y ����
+ * 将光标移动至指定位置
+ * @param x 指定的 x 坐标
+ * @param y 指定的 y 坐标
  */
 void gotoxy(int x, int y) {
-	//Ϊ�˽��������򲻶�����ʾ������ͳһ����ƫ����
+	//为了将房间区域不顶格显示，所以统一加上偏移量
 	x += 2;
 	y += 2;
-	x *= 2;	//��Ϊʹ��2���ո��ʾһ��������������Ҫ����2
+	x *= 2;	//因为使用2个空格表示一个房间区域，所以要乘上2
 	COORD coord = { (SHORT)x, (SHORT)y };
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 
 
 /***
- * ��ӡĳ��ʱ�̷������������״̬
- * @param controller Ŀ��ɨ�ػ����˿�����
+ * 打印某个时刻房间所有区域的状态
+ * @param controller 目标扫地机器人控制器
  */
 void print_room_map(const LogicController controller) {
 	//Locked_Fog 25/5/6
 	/***
-	 * ˼·���ƶ���굽��ʼλ�ã�Ȼ��controller�ڵ����ݴ�ӡͼ��
+	 * 思路：移动光标到初始位置，然后按controller内的内容打印图像
 	 */
 	for(int i=0;i<ROOM_WIDTH;i++){
 		for(int j=0;j<ROOM_LENGTH;j++){
-			gotoxy(j,i);		//ע�⣺���������Ĺ�ϵӦ��Ϊcontroller.room[y][x]
+			gotoxy(j,i);		//注意：数组和坐标的关系应当为controller.room[y][x]
 			if(i==controller.robotX && j==controller.robotY){
 				cout<<colorMap[GRID_ROBOT];
 			}else{
@@ -103,36 +103,36 @@ void print_room_map(const LogicController controller) {
 }
 
 /***
- * ��ͼ
- * @param controller Ŀ��ɨ�ػ����˿�����
+ * 建图
+ * @param controller 目标扫地机器人控制器
  */
 void mapping(LogicController &controller) {
 	//TODO
 }
 
 
-//��ɨ
+//清扫
 /***
- * ��ɨ
- * @param controller Ŀ��ɨ�ػ����˿�����
+ * 清扫
+ * @param controller 目标扫地机器人控制器
  */
 void scanning_sweep(LogicController &controller) {
 	//TODO
 }
 
 /***
- * ������ɨ
- * @param x Ŀ��ص�� x ����
- * @param y Ŀ��ص�� y ����
- * @param controller Ŀ��ɨ�ػ����˿�����
+ * 定点清扫
+ * @param x 目标地点的 x 坐标
+ * @param y 目标地点的 y 坐标
+ * @param controller 目标扫地机器人控制器
  */
 // void target_sweep(int x,int y,LogicController &controller) {
 	//TODO
 // }
 
 /***
- * ���ƻ����˻ص����
- * @param controller Ŀ��ɨ�ػ����˿�����
+ * 控制机器人回到起点
+ * @param controller 目标扫地机器人控制器
  */
 void goto_start_point(LogicController &controller) {
 	vector<pair<int, int>> path;
@@ -145,21 +145,21 @@ void goto_start_point(LogicController &controller) {
 }
 
 /***
- * ��ӡ��ʾ��Ϣ����ɴ�ӡ����ʾ���������������...��
- * @param msg Ԥ�ƽ�Ҫ��ӡ����Ϣ
+ * 打印提示信息，完成打印后将显示“输入任意键继续...”
+ * @param msg 预计将要打印的信息
  */
 void step_over(string msg) {
 	cout << endl << msg << endl;
-	cout << "�������������..." << endl;
-	getch();	//�ȴ�������������£�����Ҫ���س���ȷ������
-	system("cls");	//�������̨���������е��ַ�����������ƶ������Ϸ�
+	cout << "输入任意键继续..." << endl;
+	getch();	//等待键盘任意键按下，不需要按回车键确认输入
+	system("cls");	//清除控制台界面上所有的字符，并将光标移动到左上方
 }
 
 int main() {
-	//������Ļ��ʹ��֧�ֹ��λ�ÿ��ƺͲ�ɫ����
+	//配置屏幕，使其支持光标位置控制和彩色字体
 	config_screen();
 
-	//��ʼ��colorMap
+	//初始化colorMap
 	colorMap[GRID_UNKNOWN] = GRID_UNKNOWN_COLOR;
 	colorMap[GRID_NORMAL] = GRID_NORMAL_COLOR;
 	colorMap[GRID_CLEANED] = GRID_CLEANED_COLOR;
@@ -167,13 +167,13 @@ int main() {
 	colorMap[GRID_DYNAMIC_OBSTACLE] = GRID_DYNAMIC_OBSTACLE_COLOR;
 	colorMap[GRID_ROBOT] = GRID_ROBOT_COLOR;
 
-	//�����߼�������
+	//创建逻辑控制器
 	LogicController controller;
-	//����������������ʼ��Ϊδ֪״̬
+	//将房间的所有区块初始化为未知状态
 	for (int i = 0; i < ROOM_WIDTH; i++)
 		for (int j = 0; j < ROOM_LENGTH; j++)
 			controller.room[i][j] = GRID_UNKNOWN;
-	//���û����˵ĳ�ʼλ��Ϊ���Ϸ�
+	//设置机器人的初始位置为左上方
 	controller.robotX = 0;
 	controller.robotY = 0;
 	controller.room[0][0] = GRID_NORMAL;
@@ -181,23 +181,23 @@ int main() {
 	//test
 	print_room_map(controller);
 
-	//��ͼ
+	//建图
 	mapping(controller);
 	goto_start_point(controller);
-	step_over("��ͼ��ɣ�");
+	step_over("建图完成！");
 
-	//��ɨ
+	//清扫
 	scanning_sweep(controller);
 	goto_start_point(controller);
-	step_over("��ɨ��ɣ�");
+	step_over("清扫完成！");
 
-	//������ɨ��ѡ����
+	//定点清扫（选做）
 	//target_sweep(controller);
-	//step_over("������ɨ��ɣ�");
+	//step_over("定点清扫完成！");
 
-	//�ص����
+	//回到起点
 	goto_start_point(controller);
-	step_over("���й��̽�����");
+	step_over("所有过程结束！");
 
 	return 0;
 }

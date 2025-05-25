@@ -4,12 +4,12 @@
 
 
 /***
- * ¼ÆËã×î¶ÌÂ·¾¶£¬Ê¹ÓÃdijkstraËã·¨
- * @param map ´¢´æµØÍ¼µÄ¶şÎ¬Êı×é
- * @param width, length ·¿¼ä³¤¡¢¿í
- * @param start_x, start_y Æğµã×ø±ê
- * @param end_x, end_y ÖÕµã×ø±ê
- * @param path ÒÔ verctor<pair<int,int>> ÀàĞÍ´æ·ÅµÄÂ·¾¶
+ * è®¡ç®—æœ€çŸ­è·¯å¾„ï¼Œä½¿ç”¨dijkstraç®—æ³•
+ * @param map å‚¨å­˜åœ°å›¾çš„äºŒç»´æ•°ç»„
+ * @param width, length æˆ¿é—´é•¿ã€å®½
+ * @param start_x, start_y èµ·ç‚¹åæ ‡
+ * @param end_x, end_y ç»ˆç‚¹åæ ‡
+ * @param path ä»¥ verctor<pair<int,int>> ç±»å‹å­˜æ”¾çš„è·¯å¾„
  * @param
  */
 void find_shortest_path(const int *map, int width, int length, int start_x, int start_y, int end_x, int end_y,
