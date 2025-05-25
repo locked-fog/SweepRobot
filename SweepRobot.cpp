@@ -107,7 +107,7 @@ void print_room_map(const LogicController controller) {
  * @param controller 目标扫地机器人控制器
  */
 void mapping(LogicController &controller) {
-	//TODO
+    //TODO
 }
 
 
@@ -156,6 +156,7 @@ void step_over(string msg) {
 }
 
 int main() {
+	SetConsoleOutputCP(CP_UTF8);
 	//配置屏幕，使其支持光标位置控制和彩色字体
 	config_screen();
 
