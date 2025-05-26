@@ -99,6 +99,7 @@ void print_room_map(const LogicController controller) {
 			}
 		}
 	}
+	Sleep(100);
 	return;
 }
 /***
@@ -118,7 +119,6 @@ bool mappingBypass(int curPosX,int curPosY,int &aimPosX,int &aimPosY,LogicContro
 			controller.robotX = curPosX;controller.robotY=curPosY;
 			controller.room[curPosY][curPosX] = GRID_NORMAL;
 			print_room_map(controller);
-			Sleep(100);
 		}else{
 			controller.room[pii.second][pii.first] = GRID_STATIC_OBSTACLE;
 			isFinished=false;
@@ -219,7 +219,6 @@ void mapping(LogicController &controller) {
 			controller.robotX = nextPositionX; controller.robotY = nextPositionY; //没有障碍物，直接通过
 			controller.room[controller.robotY][controller.robotX] = GRID_NORMAL; //标记正常格
 			print_room_map(controller);
-			Sleep(100);
 		}
 		
 	}
