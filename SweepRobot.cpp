@@ -99,11 +99,18 @@ void print_room_map(const LogicController controller) {
 			}
 		}
 	}
-	Sleep(100);
+	Sleep(50);
 	return;
 }
 /***
- * 建图时绕过障碍物算法
+ * 建图时绕过障碍物算法，使用递归思路（类dfs）
+ * @param curPosX,curPosY 当前位置
+ * @param aimPosX,aimPoxY 目标位置
+ * @param controller 目标扫地机器人控制器
+ * @param isHeadingRight 方向是否向右
+ * 
+ * @returns `true` 本次绕行完成
+ * @returns `false` 抵达终点位置
  */
 bool mappingBypass(int curPosX,int curPosY,int &aimPosX,int &aimPosY,LogicController &controller,bool &isHeadingRight){
 	std::vector<std::pair<int, int>> shortestPath;
@@ -235,6 +242,79 @@ void mapping(LogicController &controller) {
 	}
 }
 
+/***
+ * 清扫时绕过障碍物算法，使用递归思路（类dfs）
+ * @param curPosX,curPosY 当前位置
+ * @param aimPosX,aimPoxY 目标位置
+ * @param controller 目标扫地机器人控制器
+ * @param isHeadingRight 方向是否向右
+ * 
+ * @returns `true` 本次绕行完成
+ * @returns `false` 抵达终点位置
+ */
+bool sweepBypass(int curPosX,int curPosY,int &aimPosX,int &aimPosY,LogicController &controller,bool &isHeadingRight){
+	std::vector<std::pair<int, int>> shortestPath;
+	while(controller.room[aimPosY][aimPosX] == GRID_STATIC_OBSTACLE || controller.room[aimPosY][aimPosX] == GRID_DYNAMIC_OBSTACLE){
+		if(isHeadingRight){
+			if(aimPosX >= ROOM_LENGTH -1){
+				aimPosY ++;
+				isHeadingRight = false;
+			}else{
+				aimPosX ++;
+			}
+		}else{
+			if(aimPosX <= 0){
+				aimPosY ++;
+				isHeadingRight = true;
+			}else{
+				aimPosX --;
+			}
+		}
+		if(aimPosY>=ROOM_WIDTH)return false;
+	}
+	find_shortest_path(*controller.room,ROOM_WIDTH,ROOM_LENGTH,curPosX,curPosY,aimPosX,aimPosY,shortestPath);
+
+	/***
+	 * 对路径进行检查
+	 */
+	bool isFinished=true;
+	for(pair<int,int> pii : shortestPath){
+		if(!mapping_detect(pii.first,pii.second,ROOM_WIDTH,ROOM_LENGTH) && !sweeping_detect(pii.first,pii.second,ROOM_WIDTH,ROOM_LENGTH)){
+			curPosX = pii.first;curPosY=pii.second;//位置更新
+			controller.robotX = curPosX;controller.robotY=curPosY;
+			controller.room[curPosY][curPosX] = GRID_CLEANED;
+			Sleep(50);
+			print_room_map(controller);
+		}else{
+			controller.room[pii.second][pii.first] = controller.room[pii.second][pii.first]==GRID_STATIC_OBSTACLE?GRID_STATIC_OBSTACLE:GRID_DYNAMIC_OBSTACLE;
+			isFinished=false;
+			//目标位置检查
+			if(pii.first == aimPosX && pii.second == aimPosY){ //目标是障碍
+				if(isHeadingRight){
+					if(aimPosX >= ROOM_LENGTH -1){
+						aimPosY ++;
+						isHeadingRight = false;
+					}else{
+						aimPosX ++;
+					}
+				}else{
+					if(aimPosX <= 0){
+						aimPosY ++;
+						isHeadingRight = true;
+					}else{
+						aimPosX --;
+					}
+				}
+				if(aimPosY>=ROOM_WIDTH)return false;
+			}
+			break;
+		}
+	}
+	if(!isFinished){
+		return sweepBypass(curPosX,curPosY,aimPosX,aimPosY,controller,isHeadingRight);
+	}else return true;
+}
+
 
 //清扫
 /***
@@ -242,7 +322,87 @@ void mapping(LogicController &controller) {
  * @param controller 目标扫地机器人控制器
  */
 void scanning_sweep(LogicController &controller) {
-	//TODO
+	//Locked_Fog 25/5/26
+	/***
+	 * 思路：行扫描
+	 */
+
+	bool isHeadingRight = true; //控制向右
+	controller.robotX = 0; controller.robotY = 0; //机器人位置初始化
+	controller.room[0][0]=GRID_CLEANED;
+	while(true){
+		int currentPositionX = controller.robotX, currentPositionY = controller.robotY; //当前位置
+		int nextPositionX = controller.robotX, nextPositionY = controller.robotY; //下一位置
+		
+		/***
+		 * 处理下一目标点位置
+		 */
+		if(isHeadingRight){
+			if(currentPositionX >= ROOM_LENGTH-1){ //边界，换向
+				nextPositionY++;
+				isHeadingRight = false;
+			}else{
+				nextPositionX++;
+			}
+		}else{
+			if(currentPositionX <= 0){ //边界，换向
+				nextPositionY++;
+				isHeadingRight = true;
+			}else{
+				nextPositionX--;
+			}
+		}
+
+		/***
+		 * 处理边界
+		 */
+		if(nextPositionY >= ROOM_WIDTH)break;
+
+		/***
+		 * 处理障碍物逻辑
+		 */
+		if(mapping_detect(nextPositionX,nextPositionY,ROOM_WIDTH,ROOM_LENGTH) || sweeping_detect(nextPositionX,nextPositionY,ROOM_WIDTH,ROOM_LENGTH)){ // 返回true有障碍物
+			controller.room[nextPositionY][nextPositionX] = controller.room[nextPositionY][nextPositionX]==GRID_STATIC_OBSTACLE?GRID_STATIC_OBSTACLE:GRID_DYNAMIC_OBSTACLE; //标记障碍格
+			/***
+			 * 更新目标，处理边界和方向
+			 */
+			if(isHeadingRight){
+				if(nextPositionX >= ROOM_LENGTH-1){
+					nextPositionY++;
+					isHeadingRight=false;
+				}else{
+					nextPositionX++;
+				}
+			}else{
+				if(nextPositionX <= 0){
+					nextPositionY++;
+					isHeadingRight=true;
+				}else{
+					nextPositionX--;
+				}
+			}
+			if(nextPositionY>=ROOM_WIDTH)break;
+			if(!sweepBypass(currentPositionX,currentPositionY,nextPositionX,nextPositionY,controller,isHeadingRight))break;
+			
+		}else{
+			controller.robotX = nextPositionX; controller.robotY = nextPositionY; //没有障碍物，直接通过
+			controller.room[controller.robotY][controller.robotX] = GRID_CLEANED; //标记正常格
+			Sleep(50);
+			print_room_map(controller);
+		}
+		
+	}
+
+	/***
+	 * 回家
+	 */
+	std::vector<std::pair<int, int>> shortestPath;
+	find_shortest_path(*controller.room,ROOM_WIDTH,ROOM_LENGTH,controller.robotX,controller.robotY,0,0,shortestPath);
+	for(pair<int,int>pii : shortestPath){
+		controller.robotX = pii.first;
+		controller.robotY = pii.second;
+		print_room_map(controller);
+	}
 }
 
 /***
