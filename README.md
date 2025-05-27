@@ -6,9 +6,9 @@
 
 - [x] print_room_map
 
-- [ ] mapping
+- [x] mapping
 
-- [ ] scanning_sweep
+- [x] scanning_sweep
 
 - [ ] target_sweep(choseable)
 
