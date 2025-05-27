@@ -43,6 +43,7 @@ unordered_map<int,string> colorMap;	//记录枚举对应颜色
  * [2] https://learn.microsoft.com/zh-cn/windows/console/console-virtual-terminal-sequences
  */
 void config_screen() {
+	system("cls");
 	// 获取控制台句柄
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (hOut == INVALID_HANDLE_VALUE) {
@@ -99,7 +100,7 @@ void print_room_map(const LogicController controller) {
 			}
 		}
 	}
-	Sleep(50);
+	Sleep(100);
 	return;
 }
 /***
@@ -114,6 +115,24 @@ void print_room_map(const LogicController controller) {
  */
 bool mappingBypass(int curPosX,int curPosY,int &aimPosX,int &aimPosY,LogicController &controller,bool &isHeadingRight){
 	std::vector<std::pair<int, int>> shortestPath;
+	while(controller.room[aimPosY][aimPosX] == GRID_STATIC_OBSTACLE){
+		if(isHeadingRight){
+			if(aimPosX >= ROOM_LENGTH -1){
+				aimPosY ++;
+				isHeadingRight = false;
+			}else{
+				aimPosX ++;
+			}
+		}else{
+			if(aimPosX <= 0){
+				aimPosY ++;
+				isHeadingRight = true;
+			}else{
+				aimPosX --;
+			}
+		}
+		if(aimPosY>=ROOM_WIDTH)return false;
+	}
 	find_shortest_path(*controller.room,ROOM_WIDTH,ROOM_LENGTH,curPosX,curPosY,aimPosX,aimPosY,shortestPath);
 
 	/***
@@ -279,11 +298,11 @@ bool sweepBypass(int curPosX,int curPosY,int &aimPosX,int &aimPosY,LogicControll
 	 */
 	bool isFinished=true;
 	for(pair<int,int> pii : shortestPath){
-		if(!mapping_detect(pii.first,pii.second,ROOM_WIDTH,ROOM_LENGTH) && !sweeping_detect(pii.first,pii.second,ROOM_WIDTH,ROOM_LENGTH)){
+		if((controller.room[pii.second][pii.first]!=GRID_STATIC_OBSTACLE) && !sweeping_detect(pii.first,pii.second,ROOM_WIDTH,ROOM_LENGTH)){
 			curPosX = pii.first;curPosY=pii.second;//位置更新
 			controller.robotX = curPosX;controller.robotY=curPosY;
+			if(controller.room[curPosY][curPosX] == GRID_NORMAL)Sleep(100);
 			controller.room[curPosY][curPosX] = GRID_CLEANED;
-			Sleep(50);
 			print_room_map(controller);
 		}else{
 			controller.room[pii.second][pii.first] = controller.room[pii.second][pii.first]==GRID_STATIC_OBSTACLE?GRID_STATIC_OBSTACLE:GRID_DYNAMIC_OBSTACLE;
@@ -386,8 +405,8 @@ void scanning_sweep(LogicController &controller) {
 			
 		}else{
 			controller.robotX = nextPositionX; controller.robotY = nextPositionY; //没有障碍物，直接通过
+			if(controller.room[controller.robotY][controller.robotX]==GRID_NORMAL) Sleep(100);
 			controller.room[controller.robotY][controller.robotX] = GRID_CLEANED; //标记正常格
-			Sleep(50);
 			print_room_map(controller);
 		}
 		
